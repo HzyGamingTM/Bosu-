@@ -1,5 +1,5 @@
 // this is a shader program wrapper
-export class XxShaderxX {
+export class BsShader {
     vsSource;
     fsSource;
 	program;
@@ -18,18 +18,18 @@ export class XxShaderxX {
 		this.gl.compileShader(vs);
 		if (!this.gl.getShaderParameter(vs, this.gl.COMPILE_STATUS)) {
 			alert(
-				`An error occurred compiling the visual shader: ${this.gl.getShaderInfoLog(vs)}`,
+				`An error occurred compiling the vertex shader: ${this.gl.getShaderInfoLog(vs)}`,
 			);
 			this.gl.deleteShader(vs);
 			return 1;
 		}
 
 		const fs = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-		this.gl.shaderSource(fs, this.vsSource);
+		this.gl.shaderSource(fs, this.fsSource);
 		this.gl.compileShader(fs);
 		if (!this.gl.getShaderParameter(fs, this.gl.COMPILE_STATUS)) {
 			alert(
-				`An error occurred compiling the visual shader: ${this.gl.getShaderInfoLog(fs)}`,
+				`An error occurred compiling the fragment shader: ${this.gl.getShaderInfoLog(fs)}`,
 			);
 			this.gl.deleteShader(fs);
 			return 1;
@@ -43,28 +43,46 @@ export class XxShaderxX {
 	}
 
 	async loadVsFromUrl(url) {
-		this.vsSource = new TextDecoder()
-		.decode(
-			await 
-				((await fetch(url))
-				.body.getReader().read())
-		);
+		return new Promise((resolve, reject) => {
+			fetch(url).then((response) => {
+				response.body.getReader().read().then((raw) => {
+					this.vsSource = new TextDecoder().decode(raw.value);
+					resolve(0);
+				}, (err) => {
+					reject(err);
+				});
+			}, (err) => {
+				reject(err);
+			});
+		});
 	}
 
     async loadFsFromUrl(url) {
-		this.fsSource = new TextDecoder()
-		.decode(
-			await 
-				((await fetch(url))
-				.body.getReader().read())
-		);
+		return new Promise((resolve, reject) => {
+			fetch(url).then((response) => {
+				response.body.getReader().read().then((raw) => {
+					this.fsSource = new TextDecoder().decode(raw.value);
+					resolve(0);
+				}, (err) => {
+					reject(err);
+				});
+			}, (err) => {
+				reject(err);
+			});
+		});
     }
 
 	async loadVsFromString(stig) {
 		this.vsSource = stig;
-	}
+	}	
 
     async loadFsFromString(stig) {
         this.fsSource = stig;
     }
+
+	destroy() {
+		this.gl.useProgram(null);
+		if (this.program)
+			this.gl.deleteProgram(program);
+	}
 }

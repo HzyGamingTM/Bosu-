@@ -1,4 +1,4 @@
-export class Input {
+export class BsInput {
 	static default_keymap = {
 		key_1: "z",
 		key_2: "x",

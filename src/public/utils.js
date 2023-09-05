@@ -1,4 +1,4 @@
-export class Math {
+export class BsMath {
     static isPowerOf2(value) {
         return (value & (value - 1)) === 0;
     }

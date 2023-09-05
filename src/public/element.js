@@ -1,4 +1,4 @@
-export class XxHandlerxX {
+export class BsHandler {
 	elementShaderMap;
 
 	constructor(elementShaderMap) {
@@ -6,7 +6,7 @@ export class XxHandlerxX {
 	}
 }
 
-export class XxTexturedElementxX {
+export class BsTexturedElement {	
     x; y; w; h; u; v;
 	prioity;
 
