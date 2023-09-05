@@ -2,6 +2,7 @@
 export class XxShaderxX {
     vsSource;
     fsSource;
+	program;
 	gl;
 
 	constructor(vsSource, fsSource, gl) {

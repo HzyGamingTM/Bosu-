@@ -33,7 +33,8 @@ void main() {
 const canvas = document.querySelector("#glcanvas");
 const gl = canvas.getContext("webgl");
 
-let shaderProgram = null;
+let shader;
+
 let funnytexture = null;
 let circleTexture = null;
 let vertexBuffer = null;
@@ -61,7 +62,7 @@ let circles = [{
     r: 13
 }]
 
-function main() {
+async function main() {
     // Initialize the GL context
     // Only continue if WebGL is available and working
     if (gl === null) {
@@ -77,6 +78,11 @@ function main() {
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
     resolution = [canvas.width, canvas.height];
+
+    shader = XxShaderxX(0, 0, gl);
+    await shader.loadVsFromUrl("/Shaders/vertex_shader.glsl");
+    await shader.loadFsFromUrl("/Shaders/frag_shader.glsl");
+    shader.compileAll();   
 
     requestAnimationFrame(render);
 }
