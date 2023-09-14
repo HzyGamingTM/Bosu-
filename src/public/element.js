@@ -1,26 +1,51 @@
 export class BsHandler {
 	elementShaderMap;
+	gl;
+	parent;
 
-	constructor(elementShaderMap) {
-		this.elementShaderMap = elementShaderMap;
+	constructor(gl) {
+		this.elementShaderMap = new Map();
+		this.gl = gl;
+		this.parent = null;
 	}
 }
 
-export class BsTexturedElement {	
-    x; y; w; h; u; v;
-	prioity;
+export class BsPoint {	
+    x; y; u; v;
+	r; g; b; a;
 
-	constructor(x, y, width, height, u, v, prioity) {
+	constructor(x, y, u, v, r, g, b, a) {
         this.x = x;
         this.y = y;
-		this.w = width;
-		this.h = height;
 		this.u = u;
 		this.v = v;
-		this.prioity = prioity;
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
 	}
-	
-	onClick() {
+}
 
+export class BsTriangle {
+	// size 3 array of BsPoint
+	points;
+
+	constructor(points) {
+		this.points = points;
 	}
+
+
+	// TODO: add math for checking if point lies inside triangle
+	// TODO: add math for checking if point lies on border
+}
+
+export class BsTexturedElement {
+	// array of triangles
+	triangles;
+
+	constructor(triangles) {
+		this.triangles = triangles;
+	}
+
+	// TODO: onclicks.
 }

@@ -1,7 +1,7 @@
-import { BsHandler, BsTexturedElement } from "./element.js";
+import { BsHandler, BsTexturedElement } from "../element.js";
 import { BsMath } from "./utils.js";
 
-export class BsRender {
+export class BsRenderer {
 	activeHandler;
 	gl;
 	shader;
@@ -13,9 +13,11 @@ export class BsRender {
 
 	render() {
 		this.activeHandler.elementShaderMap;
-		// go thru hashmap of elements
-		// set shader texture
-		// render
+		
+		for (element in elementShaderMap) {
+			// TODO: render
+			// TODO: set shader texture
+		}		
 	}
 }
 
@@ -71,7 +73,7 @@ export class BsTexture {
 			// power of 2 in both dimensions.
 			if (BsMath.isPowerOf2(image.width) && Math.isPowerOf2(image.height)) {
 				// Yes, it's a power of 2. Generate mips.
-				gl.generateMipmap(gl.TEXTURE_2D);
+				gl.generateMipmap(gl.TEXTURE_2D);	
 			} else {
 				// No, it's not a power of 2. Turn off mips and set
 				// wrapping to clamp to edge

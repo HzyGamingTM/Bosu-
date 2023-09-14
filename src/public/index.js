@@ -1,35 +1,6 @@
 import { BsMath } from "./utils.js";
-import { BsShader } from "./shader.js";
+import { BsShader, BsRenderer } from "./shader.js";
 import { BsTexture } from "./render.js";
-
-// Vertex Shader
-const vsSource = `
-precision mediump float;
-attribute vec4 vpos;
-varying vec2 uv;
-attribute vec4 shade;
-varying vec4 shade_out;
-uniform sampler2D uSampler;
-
-void main() {
-	gl_Position = vec4(vpos.xy, 0.0, 1.0);
-	uv = vpos.zw;
-	shade_out = shade;
-}
-`;
-
-// Fragment Shader
-const fsSource = `
-precision mediump float;
-varying vec2 uv;
-varying vec4 shade_out;
-uniform sampler2D uSampler;
-
-void main() {
-	gl_FragColor = texture2D(uSampler, vec2(uv.x, 1.0 - uv.y));
-	gl_FragColor *= shade_out;
-}
-`;
 
 const canvas = document.querySelector("#glcanvas");
 const gl = canvas.getContext("webgl");
@@ -37,6 +8,10 @@ const gl = canvas.getContext("webgl");
 let shader;
 let cirle;
 let resolution = [];
+
+let handler;
+let renderer;
+let ryan;
 
 async function main() {
 	// Initialize the GL context
@@ -61,6 +36,7 @@ async function main() {
 	shader.compileAll();
 
 	cirle = new BsTexture(gl, "/Textures/IMG_0025.JPG");
+	renderer = new BsRenderer(gl);
 
 	requestAnimationFrame(render);
 }
