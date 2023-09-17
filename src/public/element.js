@@ -8,6 +8,8 @@ export class BsHandler {
 		this.gl = gl;
 		this.parent = null;
 	}
+
+	
 }
 
 export class BsPoint {	
@@ -33,13 +35,20 @@ export class BsTriangle {
 	constructor(points) {
 		this.points = points;
 	}
+ 
+	isInside() {
 
+	}
+
+	isOnBorder() {
+
+	}
 
 	// TODO: add math for checking if point lies inside triangle
 	// TODO: add math for checking if point lies on border
 }
 
-export class BsTexturedElement {
+export class BsElement {
 	// array of triangles
 	triangles;
 

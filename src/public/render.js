@@ -1,41 +1,86 @@
-import { BsHandler, BsTexturedElement } from "../element.js";
+import { BsHandler, BsElement } from "../element.js";
 import { BsMath } from "./utils.js";
 
 export class BsRenderer {
 	activeHandler;
 	gl;
 	shader;
+	vbo;
+	cbo;
 
-	constructor(gl) {
+	constructor(shader, gl) {
 		this.gl = gl;
+		this.shader = shader;
 		this.activeHandler = null;
+
+		this.vbo = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, 4 * 4 * 30000, this.gl.DYNAMIC_DRAW);
+		
+		// Attribute Pointer Locations
+		this.gl.vertexAttribPointer(
+			this.shader.locations.attrib["vpos"], 4, 
+			this.gl.FLOAT, false, 0, 0
+		);
+		this.gl.enableVertexAttribArray(this.shader.locatons.a["vpos"]);
+
+		cbo = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, cbo);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, 4 * 4 * 30000, this.gl.DYNAMIC_DRAW);
+		this.gl.vertexAttribPointer(
+			this.shader.locations.a["shade"], 4, 
+			this.gl.FLOAT, false, 0, 0
+		);
+		this.gl.enableVertexAttribArray(this.shader.locatons.a["shade"]);
+
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
 	}
 
 	render() {
-		this.activeHandler.elementShaderMap;
+		let elementShaderMap = this.activeHandler.elementShaderMap;
 		
-		for (element in elementShaderMap) {
-			// TODO: render
-			// TODO: set shader texture
-		}		
+		for (kvp in elementShaderMap) {
+			// Set shader texture
+			let texture = kvp[0].texture;
+			let elements = kvp[1];
+			
+			let verts = [];
+			for (i = 0; i < elements.length; i++) {
+				
+			}
+
+			this.gl.activeTexture(this.gl.TEXTURE0);
+			this.gl.bindTexture(gl.TEXTURE_2D, texture);
+
+			this.gl.uniform1i(this.shader.locations.u["uSampler"], 0);
+			
+			this.gl.useProgram(this.shader.program);
+			this.gl.drawArrays(gl.TRIANGLES, 0, 6);
+			
+			// Unbinds Texture & Shader
+			this.gl.bindTexture(gl.TEXTURE_2D, 0);
+			this.gl.useProgram(0);
+		}
+
+		this.gl.deleteBuffer(vbo);
 	}
 }
 
 export class BsTexture {
-	w; h; t; gl;
+	width; height; texture; gl;
 	// Options none for now
 	constructor(gl, url/*, options*/) {
 		this.gl = gl;
 		const texture = gl.createTexture();
-		this.t = texture;
+		this.texture = texture;
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 	
 		const level = 0;
 		const internalFormat = gl.RGBA;
 		const width = 1;
-		this.w = width;
+		this.width = width;
 		const height = 1;
-		this.h = height;
+		this.height = height;
 		const border = 0;
 		const srcFormat = gl.RGBA;
 		const srcType = gl.UNSIGNED_BYTE;
@@ -65,8 +110,8 @@ export class BsTexture {
 				srcType,
 				image,
 			);
-			this.w = image.width;
-			this.h = image.height;
+			this.width = image.width;
+			this.height = image.height;
 	
 			// WebGL1 has different requirements for power of 2 images
 			// vs. non power of 2 images so check if the image is a
@@ -86,7 +131,7 @@ export class BsTexture {
 	}
 
 	delete() {
-		this.gl.deleteTexture(this.t);
-		this.t = -1;
+		this.gl.deleteTexture(this.texture);
+		this.texture -1;
 	}
 }

@@ -1,6 +1,6 @@
 import { BsMath } from "./utils.js";
-import { BsShader, BsRenderer } from "./shader.js";
-import { BsTexture } from "./render.js";
+import { BsShader } from "./shader.js";
+import { BsRenderer, BsTexture } from "./render.js";
 
 const canvas = document.querySelector("#glcanvas");
 const gl = canvas.getContext("webgl");
@@ -36,7 +36,7 @@ async function main() {
 	shader.compileAll();
 
 	cirle = new BsTexture(gl, "/Textures/IMG_0025.JPG");
-	renderer = new BsRenderer(gl);
+	// renderer = new BsRenderer(gl);
 
 	requestAnimationFrame(render);
 }

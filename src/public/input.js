@@ -9,13 +9,14 @@ export class BsInput {
 		show_leaderboard: "Tab"
 	}
 
-	static key_map;	
+	static key_map;
+	
 	async loadKeyMap() {
 	    let jsonString = localStorage['InputMap'];
 	    if (jsonString != undefined)
 	        this.key_map = JSON.parse(jsonString);
 		else {
-			console.log("InputMap not found, reverting back to default keymap!");
+			console.log("Keymap not found, reverting back to default keymap!");
 			this.key_map = default_keymap;
 			this.saveKeyMap(); 
 		}

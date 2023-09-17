@@ -3,13 +3,26 @@ export class BsShader {
     vsSource;
     fsSource;
 	program;
+	locations;
 	gl;
 
 	constructor(vsSource, fsSource, gl) {
 		this.vsSource = vsSource;
 		this.fsSource = fsSource;
+		this.locations = {
+			attrib: {},
+			unifom: {},
+		};
 		this.program = 0;
 		this.gl = gl;
+	}
+
+	registerUniform(name) {
+		this.locations.unifom[name] = this.gl.getUniformLocation(this.program, name);
+	}
+
+	registerAttrib(name) {
+		this.locations.attrib[name] = this.gl.getAttribLocation(this.program, name);
 	}
 
 	compileAll() {
@@ -20,6 +33,8 @@ export class BsShader {
 			alert(
 				`An error occurred compiling the vertex shader: ${this.gl.getShaderInfoLog(vs)}`,
 			);
+			console.error(this.gl.getShaderInfoLog(vs));
+
 			this.gl.deleteShader(vs);
 			return 1;
 		}
@@ -31,6 +46,8 @@ export class BsShader {
 			alert(
 				`An error occurred compiling the fragment shader: ${this.gl.getShaderInfoLog(fs)}`,
 			);
+			console.error(this.gl.getShaderInfoLog(fs));
+			
 			this.gl.deleteShader(fs);
 			return 1;
 		}
@@ -49,9 +66,11 @@ export class BsShader {
 					this.vsSource = new TextDecoder().decode(raw.value);
 					resolve(0);
 				}, (err) => {
+					console.error(err);
 					reject(err);
 				});
 			}, (err) => {
+				console.error(err);
 				reject(err);
 			});
 		});
@@ -64,9 +83,11 @@ export class BsShader {
 					this.fsSource = new TextDecoder().decode(raw.value);
 					resolve(0);
 				}, (err) => {
+					console.error(err);
 					reject(err);
 				});
 			}, (err) => {
+				console.error(err);
 				reject(err);
 			});
 		});
