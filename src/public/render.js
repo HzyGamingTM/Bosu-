@@ -8,6 +8,8 @@ export class BsRenderer {
 	vbo;
 	cbo;
 
+	hitcircles;
+
 	constructor(shader, gl) {
 		this.gl = gl;
 		this.shader = shader;
@@ -46,7 +48,7 @@ export class BsRenderer {
 			
 			let verts = [];
 			for (i = 0; i < elements.length; i++) {
-				
+					
 			}
 
 			this.gl.activeTexture(this.gl.TEXTURE0);
