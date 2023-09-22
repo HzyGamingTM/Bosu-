@@ -5,6 +5,11 @@ import { BsRenderer, BsTexture } from "./render.js";
 const canvas = document.querySelector("#glcanvas");
 const gl = canvas.getContext("webgl");
 
+canvas.style.width = document.body.parentNode.clientWidth + "px";
+canvas.style.height = document.body.parentNode.clientHeight + "px";
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
+
 let shader;
 let cirle;
 let resolution = [];
@@ -27,6 +32,8 @@ async function main() {
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+	
+	gl.viewport(0, 0, canvas.width, canvas.height);
 
 	resolution = [canvas.width, canvas.height];
 
@@ -98,7 +105,7 @@ function render() {
 
 	// Uniforms
 	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, cirle.t);
+	gl.bindTexture(gl.TEXTURE_2D, cirle.texture);
 
 	location = gl.getUniformLocation(shader.program, "uSampler");
 	gl.uniform1i(location, 0);

@@ -8,7 +8,6 @@ export class BsRenderer {
 	vbo;
 	cbo;
 
-	hitcircles;
 
 	constructor(shader, gl) {
 		this.gl = gl;
@@ -48,7 +47,7 @@ export class BsRenderer {
 			
 			let verts = [];
 			for (i = 0; i < elements.length; i++) {
-					
+
 			}
 
 			this.gl.activeTexture(this.gl.TEXTURE0);
@@ -132,8 +131,23 @@ export class BsTexture {
 		image.src = url;
 	}
 
+	createTextureAtlas(textures) {
+		for (texture in textures) {
+			
+		}
+	}
+
 	delete() {
 		this.gl.deleteTexture(this.texture);
 		this.texture -1;
+	}
+}
+
+export class TetxureAtlas {
+	
+	constructor(textures) {
+		for (texture in textures) {
+
+		}
 	}
 }
