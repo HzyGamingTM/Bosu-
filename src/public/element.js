@@ -1,17 +1,10 @@
 export class BsHandler {
 	gl;
-	parent;
-	
+	elements;
+	texture;
 
 	constructor(gl) {
-		this.elementShaderMap = new Map();
-		this.gl = gl;
-		this.parent = null;
-
-		
 	}
-
-	
 }
 
 export class BsPoint {	

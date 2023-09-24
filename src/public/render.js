@@ -117,21 +117,18 @@ export class BsTexture {
 			// WebGL1 has different requirements for power of 2 images
 			// vs. non power of 2 images so check if the image is a
 			// power of 2 in both dimensions.
-			if (BsMath.isPowerOf2(image.width) && Math.isPowerOf2(image.height)) {
-				// Yes, it's a power of 2. Generate mips.
-				gl.generateMipmap(gl.TEXTURE_2D);	
-			} else {
-				// No, it's not a power of 2. Turn off mips and set
-				// wrapping to clamp to edge
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-			}
+
+			// No, it's not a power of 2. Turn off mips and set
+			// wrapping to clamp to edge
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		};
 		image.src = url;
 	}
 
-	createTextureAtlas(textures) {
+	static createTextureAtlas(textures) {
 		for (texture in textures) {
 			
 		}
@@ -140,14 +137,5 @@ export class BsTexture {
 	delete() {
 		this.gl.deleteTexture(this.texture);
 		this.texture -1;
-	}
-}
-
-export class TetxureAtlas {
-	
-	constructor(textures) {
-		for (texture in textures) {
-
-		}
 	}
 }

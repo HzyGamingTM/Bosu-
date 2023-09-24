@@ -42,7 +42,7 @@ async function main() {
 	await shader.loadFsFromUrl("/Shaders/frag_shader.glsl");
 	shader.compileAll();
 
-	cirle = new BsTexture(gl, "/Textures/IMG_0025.JPG");
+	cirle = new BsTexture(gl, "/Textures/hitcircle.png");
 	// renderer = new BsRenderer(gl);
 
 	requestAnimationFrame(render);
