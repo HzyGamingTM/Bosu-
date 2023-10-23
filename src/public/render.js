@@ -313,7 +313,11 @@ export class TextureAtlas {
 				}
 			);
 		}
+		
+		for (const [name, obj] of this) {
 
+		}
+		
 		let sourceType = this.subtextures.sourceType;
 		switch (sourceType) {
 			case TextureAtlas.URL:
