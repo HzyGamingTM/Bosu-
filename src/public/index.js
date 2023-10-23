@@ -3,7 +3,7 @@ import { BsShader } from "./shader.js";
 import { BsRenderer, BsTexture } from "./render.js";
 
 const canvas = document.querySelector("#glcanvas");
-const gl = canvas.getContext("webgl");
+const gl = canvas.getContext("webgl2");
 
 canvas.style.width = document.body.parentNode.clientWidth + "px";
 canvas.style.height = document.body.parentNode.clientHeight + "px";
@@ -42,10 +42,60 @@ async function main() {
 	await shader.loadFsFromUrl("/Shaders/frag_shader.glsl");
 	shader.compileAll();
 
-	cirle = new BsTexture(gl, "/Textures/hitcircle.png");
-	// renderer = new BsRenderer(gl);
+	/* // Test 1 - Demonstrate single image capability
+	cirle = new BsTexture(gl, 0, 0);
+	cirle.loadFromUrl("/Textures/hitcircle.png").then((value) => {
+		// renderer = new BsRenderer(gl);
+		requestAnimationFrame(render);
+	});
+	*/
 
-	requestAnimationFrame(render);
+	/* // Test 2 - Demonstrate single image with border capability
+	let _cirle_img = new Image();
+	_cirle_img.onload = () => {
+		cirle = new BsTexture(gl, 
+			_cirle_img.width + 50, 
+			_cirle_img.height + 50
+		);
+		cirle.loadHTMLImage(_cirle_img, 25, 25);
+
+		requestAnimationFrame(render);
+	}
+	_cirle_img.src = "/Textures/IMG_0025.JPG";
+	*/
+
+	// Test 3 - Generating a double image texture atlas
+	{
+		let images = [new Image(), new Image(), new Image(), new Image()];
+		let _tmpblock_counter = 0;
+		let _tmpblock_exit = () => {
+			let width = 0;
+			let height = 0;
+			let x = 0;
+			for (let i = 0; i < images.length; i++) {
+				width += images[i].width + 2;
+				let nheight = images[i].height + 2;
+				if (nheight > height) height = nheight;
+			}
+			cirle = new BsTexture(gl, width, height);
+			for (let i = 0; i < images.length; i++) {
+				x++;
+				cirle.loadHTMLImage(images[i], x, 1)
+				x += images[i].width + 1;
+			}
+			requestAnimationFrame(render);
+		};
+		let _tmpblock_imgonload = () => {
+			_tmpblock_counter++;
+			if (_tmpblock_counter == 2)
+				_tmpblock_exit();
+		};
+		let urls = ["/Textures/IMG_0025.jpg", "/Textures/hitcircle.png", "/Textures/IMG_0025.jpg", "/Textures/IMG_0025.jpg"];
+		for (let i = 0; i < images.length; i++) {
+			images[i].onload = _tmpblock_imgonload;
+			images[i].src = urls[i];
+		}
+	}
 }
 
 function render() {

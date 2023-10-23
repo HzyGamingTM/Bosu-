@@ -7,7 +7,9 @@ export class BsRenderer {
 	shader;
 	vbo;
 	cbo;
-
+	
+	deltaTime;
+	lastUpdate;
 
 	constructor(shader, gl) {
 		this.gl = gl;
@@ -38,6 +40,10 @@ export class BsRenderer {
 	}
 
 	render() {
+		let now = Date.now();
+    	this.deltaTime = now - this.lastUpdate;
+    	this.lastUpdate = now;
+
 		let elementShaderMap = this.activeHandler.elementShaderMap;
 		
 		for (kvp in elementShaderMap) {
@@ -70,7 +76,111 @@ export class BsRenderer {
 export class BsTexture {
 	width; height; texture; gl;
 	// Options none for now
-	constructor(gl, url/*, options*/) {
+	constructor(gl, width, height) {
+		this.gl = gl;
+		this.texture = gl.createTexture();
+		this.width = width;
+		this.height = height;
+
+		if (width == 0 || height == 0) return;
+
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texStorage2D(
+			gl.TEXTURE_2D, 1, gl.RGBA8,
+			width, height
+		);
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	}
+
+	async loadFromUrl(url) {
+		let gl = this.gl;
+		
+		return new Promise((resolve, reject) => {
+			let image = new Image();
+			image.onload = () => {
+				this.width = image.width;
+				this.height = image.height;
+
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+				gl.texImage2D(
+					gl.TEXTURE_2D, 0, 
+					gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+					image
+				);
+				gl.bindTexture(gl.TEXTURE_2D, null);
+				resolve(this);
+			}
+			image.src = url;
+		});
+	}
+		
+	async loadUrl(url, x, y) {
+		let gl = this.gl;
+
+		return new Promise((resolve, reject) => {
+			if (this.width == 0 || this.height == 0) {
+				reject(new Error(
+					"BsTexture::loadUrl: " +
+					"Texture not initialised (width or height not specified)"
+				));
+			}
+
+			let image = new Image();
+			image.onload = () => {
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+				gl.texSubImage2D(
+					gl.TEXTURE_2D, 0, x, y,
+					gl.RGBA, gl.UNSIGNED_BYTE,
+					image 
+				);
+				gl.bindTexture(gl.TEXTURE_2D, null);
+				resolve(this);
+			}
+			image.src = url;
+		});
+	}
+
+	loadFromHTMLImage(image) {
+		let gl = this.gl;
+
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texImage2D(
+			gl.TEXTURE_2D, 0,
+			gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+			image 
+		);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		return this;
+	}
+	
+	loadHTMLImage(image, x, y) {
+		let gl = this.gl;
+
+		if (this.width == 0 || this.height == 0) {
+			return new Error(
+				"BsTexture::loadUrl: " +
+				"Texture not initialised (width or height not specified)"
+			);
+		}
+
+		if (x == undefined) x = 0;
+		if (y == undefined) y = 0;
+
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texSubImage2D(
+			gl.TEXTURE_2D, 0, x, y,
+			gl.RGBA, gl.UNSIGNED_BYTE,
+			image 
+		);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		return this;
+	}
+	/*
+	constructor(gl, url, useronload) {
 		this.gl = gl;
 		const texture = gl.createTexture();
 		this.texture = texture;
@@ -106,6 +216,7 @@ export class BsTexture {
 			gl.texImage2D(
 				gl.TEXTURE_2D,
 				level,
+				// prob now
 				internalFormat,
 				srcFormat,
 				srcType,
@@ -124,18 +235,102 @@ export class BsTexture {
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+			useronload(this.texture, image);
 		};
 		image.src = url;
 	}
+	*/
 
-	static createTextureAtlas(textures) {
-		for (texture in textures) {
-			
-		}
+	static defaultEmptyTexture(gl) {
+
 	}
 
 	delete() {
 		this.gl.deleteTexture(this.texture);
-		this.texture -1;
+		this.texture = -1;
+	}
+}
+
+export class TextureAtlas {
+	gl;
+	subtextures;
+	texture;
+	width;
+	height;
+	status;
+
+	// constants for the addSource function
+	static URL = 0;
+	static HTMLIMAGE = 1;
+	
+
+	// constants for status
+	static INCOMPLETE = 0;
+	static COMPILING = 1;
+	static READY = 2;
+	
+	constructor(gl) {
+		this.gl = gl;
+		this.subtextures = new Map();
+		this.texture = null;
+		this.width = 0;
+		this.height = 0;
+		this.status = thi;
+	}
+
+	// x, y, width and height are in integer pixels
+	addTexture(textureName, x, y, width, height) {
+		let texture;
+		
+		let textureObject = {
+			width: width,
+			height: height,
+			x: x,
+			y: y,
+			source: null,
+			sourceType: -1,
+		};
+
+		if (x + width > this.width) this.width = x + width;
+		if (y + height > this.height) this.height = y + height;
+
+		this.subtextures.set(textureName, textureObject);
+	}
+
+	addSource(textureName, source, sourceType) {
+		let textureObject = this.subtextures.get(textureName);
+		textureObject.source = source;
+		textureObject.sourceType = sourceType;
+		this.subtextures.set(textureName, textureObject);
+	}
+
+	async compile() {
+		if (this.width == 0 || this.height == 0) {
+			return new Promise(
+				(_, rej) => {
+					rej("Width or height is 0; did you load any images?")
+				}
+			);
+		}
+
+		let sourceType = this.subtextures.sourceType;
+		switch (sourceType) {
+			case TextureAtlas.URL:
+				
+				break;
+			case TextureAtlas.HTMLIMAGE:
+				
+				break;	
+			default:
+				console.err("Blud no type! 😡😡"); // lmao
+				break;
+		}
+
+		this.status = this.READY;
+	}
+
+	delete() {
+		this.texture.delete();
 	}
 }

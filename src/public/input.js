@@ -45,7 +45,8 @@ export class BsInput {
 	        		case key_map.key_smoke:
 				
 	        	    	break;
-	        		case key_pause:	
+	        		case key_pause:
+						
 	        	  		break;
 	      		}
 
