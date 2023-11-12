@@ -53,7 +53,7 @@ export class BsRenderer {
 			
 			let verts = [];
 			for (i = 0; i < elements.length; i++) {
-
+				
 			}
 
 			this.gl.activeTexture(this.gl.TEXTURE0);
@@ -162,7 +162,7 @@ export class BsTexture {
 
 		if (this.width == 0 || this.height == 0) {
 			return new Error(
-				"BsTexture::loadUrl: " +
+				"BsTexture::loadHTMLImage: " +
 				"Texture not initialised (width or height not specified)"
 			);
 		}
@@ -252,7 +252,7 @@ export class BsTexture {
 	}
 }
 
-export class TextureAtlas {
+export class BsTextureAtlas {
 	gl;
 	subtextures;
 	texture;
@@ -276,13 +276,11 @@ export class TextureAtlas {
 		this.texture = null;
 		this.width = 0;
 		this.height = 0;
-		this.status = thi;
+		this.status = BsTextureAtlas.INCOMPLETE;
 	}
 
 	// x, y, width and height are in integer pixels
 	addTexture(textureName, x, y, width, height) {
-		let texture;
-		
 		let textureObject = {
 			width: width,
 			height: height,
@@ -292,10 +290,32 @@ export class TextureAtlas {
 			sourceType: -1,
 		};
 
-		if (x + width > this.width) this.width = x + width;
-		if (y + height > this.height) this.height = y + height;
+		if ((x + width) > this.width) this.width = x + width;
+		if ((y + height) > this.height) this.height = y + height;
 
 		this.subtextures.set(textureName, textureObject);
+	}
+
+	normalisedTexCoords(textureName) {
+		let retval = { 
+			left: -1,
+			top: -1,
+			right: -1,
+			bottom: -1
+		};
+
+		let obj = this.subtextures.get(textureName);
+		if (obj == undefined) return undefined;
+
+		let invwidth = 1.0 / this.width;
+		let invheight = 1.0 / this.height;
+
+		retval.left = obj.x * invwidth;
+		retval.top = obj.y * invheight;
+		retval.right = (obj.x + obj.width) * invwidth;
+		retval.bottom = (obj.y + obj.height) * invheight;
+
+		return retval;
 	}
 
 	addSource(textureName, source, sourceType) {
@@ -306,32 +326,73 @@ export class TextureAtlas {
 	}
 
 	async compile() {
+		const gl = this.gl;
 		if (this.width == 0 || this.height == 0) {
 			return new Promise(
 				(_, rej) => {
-					rej("Width or height is 0; did you load any images?")
+					rej("Width or height is 0; did you load any images?");
 				}
 			);
 		}
-		
-		for (const [name, obj] of this) {
 
-		}
-		
-		let sourceType = this.subtextures.sourceType;
-		switch (sourceType) {
-			case TextureAtlas.URL:
-				
-				break;
-			case TextureAtlas.HTMLIMAGE:
-				
-				break;	
-			default:
-				console.err("Blud no type! 😡😡"); // lmao
-				break;
-		}
+		this.status = BsTextureAtlas.COMPILING;
 
-		this.status = this.READY;
+		this.texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.CUBIC);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.CUBIC);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texStorage2D(
+			gl.TEXTURE_2D, 1, gl.RGBA8, 
+			this.width, this.height
+		);
+		
+		return new Promise((bigResolve, bigReject) => {
+			let urlCount = 0;
+			let enableCheck = false;
+			for (const [name, obj] of this.subtextures) {
+				switch (obj.sourceType) {
+					case BsTextureAtlas.HTMLIMAGE:
+						gl.texSubImage2D(gl.TEXTURE_2D, 0,
+							obj.x, obj.y,
+							gl.RGBA, gl.UNSIGNED_BYTE, obj.source
+						);
+						break;
+					case BsTextureAtlas.URL:
+						urlCount++;
+						(new Promise((resolve, reject) => {
+							let _tmpimg = new Image();
+							_tmpimg.src = obj.source;
+							_tmpimg.onload = () => {
+								console.log(obj);
+								gl.texSubImage2D(gl.TEXTURE_2D, 0,
+									obj.x, obj.y,
+									gl.RGBA, gl.UNSIGNED_BYTE, _tmpimg
+								);
+
+								resolve(_tmpimg);
+							}
+						})).then((_) => {
+							urlCount--;
+							if (enableCheck && urlCount <= 0) {
+								bigResolve(this);
+							}
+						});
+						break;
+					default:
+						// invalid sourcetype.. skip
+						console.log("Invalid Source Type, 😐😨😳🤪😩😡💀🙀🤨");
+				}
+			}
+			enableCheck = true;
+
+			if (urlCount <= 0) {
+				bigResolve(this);
+			}
+
+			this.status = BsTextureAtlas.READY;
+		});
 	}
 
 	delete() {
